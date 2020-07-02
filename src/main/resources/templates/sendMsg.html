@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+<link th:href="@{/css/sendMsg.css}" rel="stylesheet" />
+</head>
+<body onload="initTextArea()">
+
+	<h2>This is a Heading</h2>
+
+	<textarea id="msgLogsArea" name="msgLogsArea" rows="25" cols="50"
+		readonly></textarea>
+
+	<br>
+	<br>
+
+	<input type="text" id="msgInput" name="msgInput" size="48" pattern="[a-zA-Z0-9\s]+" autofocus>
+	<br>
+	<br>
+
+	<button type="button" th:onclick="sendMsg()" id="sendMsg">Send</button>
+
+	<button type="button" th:onclick="reset()" id="reset">Reset</button>
+
+
+	<script type="text/javascript" th:inline="javascript">
+		var input = document.getElementById("msgInput");
+		input.addEventListener("keyup", function(event) {
+			if (event.keyCode === 13) {
+				event.preventDefault();
+				document.getElementById("sendMsg").click();
+			}
+			if (event.key === "Escape") {
+				event.preventDefault();
+				document.getElementById("reset").click();
+			}
+		});
+
+		function sendMsg() {
+			var msg = document.getElementById("msgInput").value;
+			window.location.href = "/execute?msg=" + msg;
+		}
+
+		function reset() {
+			window.location.href = "/reset";
+		}
+
+		function initTextArea() {
+			var theList = /*[[${msgLogs}]]*/[];
+			for (i = 0; i < theList.length; i++) {
+				document.getElementById("msgLogsArea").value += theList[i]
+						+ "\n";
+			}
+		}
+	</script>
+</body>
+</html>

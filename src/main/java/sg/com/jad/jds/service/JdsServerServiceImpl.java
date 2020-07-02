@@ -1,10 +1,6 @@
 package sg.com.jad.jds.service;
 
 import java.net.InetAddress;
-import java.util.Date;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -17,23 +13,27 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-public class MqttServiceImpl {
+@Service
+public class JdsServerServiceImpl implements JdsServerService {
 
-	private static final Logger LOGGER = LogManager.getLogger(MqttServiceImpl.class);
+	private static final Logger LOGGER = LogManager.getLogger(JdsServerServiceImpl.class);
 	private static String HOST_URL = "127.0.0.1";
-	private static String SERVER_URL = "tcp://10.3.47.27:1883";
+
+	@Value("${mqtt.broker.url}")
+	private String mqttBrokerUrl;
 
 	private MqttClient clientSend;
 	private MqttClient clientReceive;
-	private final ScheduledExecutorService TASK_SERVICE = Executors.newSingleThreadScheduledExecutor();
 
 	@PostConstruct
 	public void postConstruct() {
-		LOGGER.info("MQTT SERVICE IS RUNNING");
+		LOGGER.info("JDS SERVER SERVICE IS RUNNING");
 		try {
 			HOST_URL = InetAddress.getLocalHost().getHostAddress();
-			LOGGER.info("Server Url = " + SERVER_URL);
 			initMqtt();
 		} catch (Exception e) {
 			LOGGER.error("Init error", e);
@@ -49,7 +49,7 @@ public class MqttServiceImpl {
 					clientReceive.disconnect();
 				}
 			}
-			LOGGER.info("disconnected!");
+			LOGGER.info("JDS SERVER SERVICE HAS STOPPED");
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -59,17 +59,16 @@ public class MqttServiceImpl {
 
 	private void initMqtt() {
 		try {
-
-			clientSend = new MqttClient(SERVER_URL, "DannelSend(" + HOST_URL + ")");
-			clientReceive = new MqttClient(SERVER_URL, "DannelReceive(" + HOST_URL + ")");
+			clientSend = new MqttClient(mqttBrokerUrl, "JdsSend(" + HOST_URL + ")", new MemoryPersistence());
+			clientReceive = new MqttClient(mqttBrokerUrl, "JdsReceive(" + HOST_URL + ")", new MemoryPersistence());
 
 			MqttConnectOptions options = new MqttConnectOptions();
-			options.setCleanSession(true);
+			options.setAutomaticReconnect(true);
 
 			clientSend.connect(options);
 			clientReceive.connect(options);
 
-			clientReceive.subscribe("alicia/jaime");
+			clientReceive.subscribe("jds/in");
 			clientReceive.setCallback(new MqttCallback() {
 				@Override
 				public void connectionLost(Throwable cause) {
@@ -80,7 +79,7 @@ public class MqttServiceImpl {
 				@Override
 				public void messageArrived(String topic, MqttMessage message) throws Exception {
 					String msg = new String(message.getPayload());
-					LOGGER.info(topic + " ------------ " + msg);
+					LOGGER.info(topic + " ----- " + msg);
 				}
 
 				@Override
@@ -90,33 +89,19 @@ public class MqttServiceImpl {
 
 			});
 
-			TASK_SERVICE.scheduleAtFixedRate(testSend, 10, 15, TimeUnit.SECONDS);
-
-		} catch (Exception e) {
-			LOGGER.error("Init MQTT Error", e);
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			LOGGER.error("Init mqtt error", e);
 		}
 
 	}
 
-	private final Runnable testSend = new Runnable() {
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			try {
-				MqttMessage message = new MqttMessage();
-				message.setPayload((clientSend.getClientId()).getBytes());
-				clientSend.publish("alicia/jaime", message);
-			} catch (Exception e) {
-				LOGGER.error("send error", e);
-			}
-		}
-	};
-
-	public void sendTestMsg() {
+	public void sendMsg(String msg) {
 		try {
 			MqttMessage message = new MqttMessage();
-			message.setPayload(("BUTTON DANNEL " + new Date()).getBytes());
-			clientSend.publish("alicia/jaime", message);
+			message.setPayload((msg).getBytes());
+			clientSend.publish("jds/in", message);
 		} catch (Exception e) {
 			LOGGER.error("send error", e);
 		}
