@@ -77,7 +77,7 @@ public class JdsServerServiceImpl implements JdsServerService {
 			clientReceive.connect(options);
 
 			// subscribe here
-			clientReceive.subscribe("jds/in1");
+			clientReceive.subscribe("jds/#");
 			clientReceive.setCallback(new MqttCallback() {
 
 				@Override
@@ -125,6 +125,18 @@ public class JdsServerServiceImpl implements JdsServerService {
 			
 		} catch (Exception e) {
 			LOGGER.error("send error", e);
+		}
+	}
+	
+	public void message(String msg, String topic) {
+		try {
+			MqttMessage message = new MqttMessage();
+			message.setPayload((msg).getBytes());
+			LOGGER.info("Sent Message is: " + message);
+			msgLogs.add(MSG_LOGS_FORMAT.format(new Date()) + "    Sent Message is: " + message);
+			clientSend.publish("jds/"+ topic, message);
+		} catch (Exception e) {
+			LOGGER.error("send generic message error", e);
 		}
 	}
 
