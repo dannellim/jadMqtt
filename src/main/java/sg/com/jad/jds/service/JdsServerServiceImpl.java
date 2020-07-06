@@ -1,6 +1,9 @@
 package sg.com.jad.jds.service;
 
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -15,13 +18,13 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JdsServerServiceImpl implements JdsServerService {
 
 	private static final Logger LOGGER = LogManager.getLogger(JdsServerServiceImpl.class);
+	private static final SimpleDateFormat MSG_LOGS_FORMAT = new SimpleDateFormat("dd/MM/yy HH:mm:ss.SSS");
 	private static String HOST_URL = "127.0.0.1";
 
 	@Value("${mqtt.broker.url}")
@@ -30,8 +33,8 @@ public class JdsServerServiceImpl implements JdsServerService {
 	private MqttClient clientSend;
 	private MqttClient clientReceive;
 	
-	//
-	public String str_message;
+	private volatile ArrayList<String> msgLogs = new ArrayList<String>();
+
 
 	@PostConstruct
 	public void postConstruct() {
@@ -87,12 +90,7 @@ public class JdsServerServiceImpl implements JdsServerService {
 				public void messageArrived(String topic, MqttMessage message) throws Exception {
 					String msg = new String(message.getPayload());
 					LOGGER.info(topic + " ----- " + msg);
-				
-					// set value here
-					setMessage(msg);
-					
-					// 
-					LOGGER.info("service: log after set msg is: " + msg);
+					msgLogs.add(MSG_LOGS_FORMAT.format(new Date()) + "     Receiv    " + topic + " ----- " + msg);
 				}
 
 				@Override
@@ -109,23 +107,21 @@ public class JdsServerServiceImpl implements JdsServerService {
 		}
 	}
 	
-	public void setMessage(String msg) {
-		// set value here
-		str_message = msg;
-		LOGGER.info("service: msg done with set here: " + msg);
+	public ArrayList<String> getMsgLogs() {
+		return this.msgLogs;
 	}
 	
-	public String getMessage() {
-		// get value here
-		return this.str_message;
+	public void clearLogs() {
+		this.msgLogs.clear();
 	}
 
 	public void sendMsg(String msg) {
 		try {
 			MqttMessage message = new MqttMessage();
 			message.setPayload((msg).getBytes());
+			LOGGER.info("Sent Message is: " + message);
+			msgLogs.add(MSG_LOGS_FORMAT.format(new Date()) + "    Sent Message is: " + message);
 			clientSend.publish("jds/in1", message);
-			LOGGER.info("Message is: " + message);
 			
 		} catch (Exception e) {
 			LOGGER.error("send error", e);

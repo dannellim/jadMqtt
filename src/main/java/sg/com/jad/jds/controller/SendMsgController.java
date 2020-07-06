@@ -24,9 +24,6 @@ public class SendMsgController {
 	// variables here
 	private static final Logger LOGGER = LogManager.getLogger(JdsServerServiceImpl.class);
 	private static final SimpleDateFormat MSG_LOGS_FORMAT = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-	private ArrayList<String> msgLogs = new ArrayList<String>();
-	
-	private String str_message;
 	
 	@Autowired
 	private JdsServerServiceImpl jdsMQTTService;
@@ -39,6 +36,7 @@ public class SendMsgController {
 
 	@GetMapping("/sendMsg")
 	public String sendMsg(Model model) {
+		ArrayList<String> msgLogs = jdsMQTTService.getMsgLogs();
 		model.addAttribute("msgLogs", msgLogs);
 		return "sendMsg";
 	}
@@ -46,34 +44,14 @@ public class SendMsgController {
 	@RequestMapping(value = "/execute")
 	public String execute(Model model, @RequestParam String msg) {
 		if (!msg.isEmpty()) {
-			
-			// 
-			msgLogs.add(MSG_LOGS_FORMAT.format(new Date()) + ":      " + msg);
-			
-			// -------------------------------------------------
-			// send message here
 			jdsMQTTService.sendMsg(msg);
-			
-			// get item here
-//			this.str_message = jdsMQTTService.str_message;
-			this.str_message = jdsMQTTService.getMessage();
-			// -------------------------------------------------
-			
-			
-			// test
-			LOGGER.info("controller str_message is: " + this.str_message);
-			
-			// pass to view here
-			model.addAttribute("msgLogs", msgLogs);
-			model.addAttribute("str_message", this.str_message);
-			
 		}
 		return "redirect:sendMsg";
 	}
 
 	@RequestMapping(value = "/reset")
 	public String reset() {
-		msgLogs.clear();
+		jdsMQTTService.clearLogs();
 		return "redirect:sendMsg";
 	}
 }
