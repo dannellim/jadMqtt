@@ -3,8 +3,9 @@
 <head>
 <title>Page Title</title>
 <link th:href="@{/css/sendMsg.css}" rel="stylesheet" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
-<body onload="initTextArea()">
+<body>
 
 	<h2>This is a Heading</h2>
 
@@ -23,35 +24,74 @@
 	<button type="button" th:onclick="reset()" id="reset">Reset</button>
 
 
-	<script type="text/javascript" th:inline="javascript">
-		var input = document.getElementById("msgInput");
-		input.addEventListener("keyup", function(event) {
-			if (event.keyCode === 13) {
-				event.preventDefault();
-				document.getElementById("sendMsg").click();
-			}
-			if (event.key === "Escape") {
-				event.preventDefault();
-				document.getElementById("reset").click();
-			}
+	<script th:inline="javascript">
+		
+		// oninit here
+		$(document).ready(function(){
+		  	// test here
+		  	console.log("loaded here");
+		  	
+		  	// load textarea here
+		  	loadTextArea();
+		  	
+		  	// event here
+		  	$("#msgInput").on('keypress',function(e) {
+		  		
+		  		// if pressed enter
+		  	    if(e.which == 13) {
+		  	        // send here
+		  	      	sendMsg2($(this).val());
+		  	    }
+		  	});
 		});
-
+		
+		
 		function sendMsg() {
-			var msg = document.getElementById("msgInput").value;
+			// variables here
+			var msg = $("#msgInput").val();
 			window.location.href = "/execute?msg=" + msg;
+		}
+		
+		function sendMsg2(tyu) {
+			// variables here
+			var msg = $("#msgInput").val();
+			//window.location.href = "/execute?msg=" + msg;
+			
+			$.ajax({
+		        url: "/execute?msg=" + msg,
+		        type: 'GET',
+		        //dataType: 'json', // added data type
+		        success: function(res) {
+		            //console.log(res);
+		            //alert(res);
+		            
+		            // load here
+		            //loadTextArea();
+		            
+		            //update here
+		            //$("#msgLogsArea").val(msg);
+		            
+		            //var str_message1 = tyu;
+		            var str_message1 = /*[[${str_message}]]*/;
+		            console.log("str_message is: " + str_message1);
+		            
+		        }
+		    });
 		}
 
 		function reset() {
 			window.location.href = "/reset";
 		}
-
-		function initTextArea() {
+		
+		function loadTextArea() {
+			// get from java controller here
 			var theList = /*[[${msgLogs}]]*/[];
 			for (i = 0; i < theList.length; i++) {
 				document.getElementById("msgLogsArea").value += theList[i]
 						+ "\n";
 			}
 		}
+		
 	</script>
 </body>
 </html>

@@ -15,6 +15,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,6 +29,9 @@ public class JdsServerServiceImpl implements JdsServerService {
 
 	private MqttClient clientSend;
 	private MqttClient clientReceive;
+	
+	//
+	public String str_message;
 
 	@PostConstruct
 	public void postConstruct() {
@@ -65,11 +69,14 @@ public class JdsServerServiceImpl implements JdsServerService {
 			MqttConnectOptions options = new MqttConnectOptions();
 			options.setAutomaticReconnect(true);
 
+			// connect here
 			clientSend.connect(options);
 			clientReceive.connect(options);
 
-			clientReceive.subscribe("jds/in");
+			// subscribe here
+			clientReceive.subscribe("jds/in1");
 			clientReceive.setCallback(new MqttCallback() {
+
 				@Override
 				public void connectionLost(Throwable cause) {
 					// TODO Auto-generated method stub
@@ -80,6 +87,12 @@ public class JdsServerServiceImpl implements JdsServerService {
 				public void messageArrived(String topic, MqttMessage message) throws Exception {
 					String msg = new String(message.getPayload());
 					LOGGER.info(topic + " ----- " + msg);
+				
+					// set value here
+					setMessage(msg);
+					
+					// 
+					LOGGER.info("service: log after set msg is: " + msg);
 				}
 
 				@Override
@@ -94,14 +107,26 @@ public class JdsServerServiceImpl implements JdsServerService {
 			e.printStackTrace();
 			LOGGER.error("Init mqtt error", e);
 		}
-
+	}
+	
+	public void setMessage(String msg) {
+		// set value here
+		str_message = msg;
+		LOGGER.info("service: msg done with set here: " + msg);
+	}
+	
+	public String getMessage() {
+		// get value here
+		return this.str_message;
 	}
 
 	public void sendMsg(String msg) {
 		try {
 			MqttMessage message = new MqttMessage();
 			message.setPayload((msg).getBytes());
-			clientSend.publish("jds/in", message);
+			clientSend.publish("jds/in1", message);
+			LOGGER.info("Message is: " + message);
+			
 		} catch (Exception e) {
 			LOGGER.error("send error", e);
 		}
