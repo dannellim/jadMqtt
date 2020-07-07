@@ -7,12 +7,13 @@ public class IvdHeader {
 	private Integer ID;
 	private Integer SN;
 	private Integer mobile_id;
-	private float latitude;
-	private float longtitude;
+	private double latitude;
+	private double longtitude;
 	private Integer speed;
 	private Integer direction;
 	private String status;
 	private Integer zone;
+	
 	public Integer getID() {
 		return ID;
 	}
@@ -31,16 +32,16 @@ public class IvdHeader {
 	public void setMobile_id(Integer mobile_id) {
 		this.mobile_id = mobile_id;
 	}
-	public float getLatitude() {
+	public double getLatitude() {
 		return latitude;
 	}
-	public void setLatitude(float latitude) {
+	public void setLatitude(double latitude) {
 		this.latitude = latitude;
 	}
-	public float getLongtitude() {
+	public double getLongtitude() {
 		return longtitude;
 	}
-	public void setLongtitude(float longtitude) {
+	public void setLongtitude(double longtitude) {
 		this.longtitude = longtitude;
 	}
 	public Integer getSpeed() {

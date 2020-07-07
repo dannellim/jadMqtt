@@ -52,4 +52,9 @@ public class Util {
     public static String decToHex(int num) {
     	return String.format("%02X", num);
     }
+    
+    public static int randomNumber(int min, int max) {
+		int randomNum = (int) (Math.random() * (max - min + 1) + min);
+		return randomNum; 
+	}
 }
