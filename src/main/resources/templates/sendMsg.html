@@ -22,6 +22,9 @@
 	<button type="button" th:onclick="sendMsg()" id="sendMsg">Send</button>
 
 	<button type="button" th:onclick="reset()" id="reset">Reset</button>
+	
+	
+	<button type="button" th:onclick="getLocation()" id="getLocation">Get Location</button>
 
 
 	<script th:inline="javascript">
@@ -40,10 +43,16 @@
 		  		// if pressed enter
 		  	    if(e.which == 13) {
 		  	        // send here
-		  	      	sendMsg2($(this).val());
+		  	      	sendMsg();
 		  	    }
 		  	});
 		});
+		
+		
+		function getLocation() {
+			// variables here
+			window.location.href = "/location";
+		}
 		
 		
 		function sendMsg() {
@@ -52,7 +61,7 @@
 			window.location.href = "/execute?msg=" + msg;
 		}
 		
-		function sendMsg2(tyu) {
+		function sendMsg2() {
 			// variables here
 			var msg = $("#msgInput").val();
 			//window.location.href = "/execute?msg=" + msg;
